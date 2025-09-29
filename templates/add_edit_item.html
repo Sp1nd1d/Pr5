@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Заголовок формы - меняется в зависимости от режима (редактирование/добавление) -->
+<h2>{{ 'Редактировать' if item else 'Добавить' }} товар</h2>
+
+<!-- Форма для добавления/редактирования товара -->
+<form method="POST">
+    <!-- Поле для названия товара -->
+    <div class="mb-3">
+        <label class="form-label">Название товара *</label>
+        <!-- Обязательное поле с предзаполнением данных при редактировании -->
+        <input type="text" class="form-control" name="name" 
+               value="{{ item.name if item else '' }}" required>
+    </div>
+    
+    <!-- Выпадающий список категорий -->
+    <div class="mb-3">
+        <label class="form-label">Категория *</label>
+        <select class="form-select" name="category" required>
+            <option value="">Выберите категорию</option>
+            <!-- Динамическое заполнение категорий из переданного списка -->
+            {% for category in categories %}
+            <option value="{{ category }}" 
+                    {{ 'selected' if item and item.category == category else '' }}>
+                {{ category }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    
+    <!-- Поле для указания количества -->
+    <div class="mb-3">
+        <label class="form-label">Количество</label>
+        <!-- Необязательное поле с подсказкой и значением по умолчанию -->
+        <input type="text" class="form-control" name="quantity" 
+               value="{{ item.quantity if item else '1 шт' }}"
+               placeholder="Например: 2 пачки, 500 г, 1 кг">
+    </div>
+    
+    <!-- Выпадающий список приоритетов -->
+    <div class="mb-3">
+        <label class="form-label">Приоритет</label>
+        <select class="form-select" name="priority">
+            <!-- Динамическое заполнение приоритетов из переданного списка -->
+            {% for priority in priorities %}
+            <option value="{{ priority }}" 
+                    {{ 'selected' if item and item.priority == priority else '' }}>
+                {{ priority }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    
+    <!-- Кнопки действий -->
+    <div class="d-flex gap-2">
+        <!-- Кнопка отмены - возврат на главную страницу -->
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">Отмена</a>
+        <!-- Кнопка сохранения формы -->
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+    </div>
+</form>
+{% endblock %}

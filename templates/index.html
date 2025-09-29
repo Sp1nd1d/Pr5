@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Панель управления с кнопкой добавления и переключателем -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <!-- Кнопка добавления нового товара -->
+    <a href="{{ url_for('add_item') }}" class="btn btn-primary">+ Добавить товар</a>
+
+    <!-- Переключатель показа купленных товаров -->
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="showPurchased" {% if show_purchased %}checked{% endif %}
+            onchange="togglePurchased()">
+        <label class="form-check-label" for="showPurchased">
+            Показать купленные
+        </label>
+    </div>
+</div>
+
+<!-- Секция фильтров -->
+<div class="row mb-3">
+    <!-- Фильтр по категориям -->
+    <div class="col-md-4">
+        <select class="form-select" onchange="filterByCategory(this.value)">
+            <option value="">Все категории</option>
+            {% for category in categories %}
+            <option value="{{ category }}" {% if category==current_category %}selected{% endif %}>
+                {{ category }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Фильтр по приоритетам -->
+    <div class="col-md-4">
+        <select class="form-select" onchange="filterByPriority(this.value)">
+            <option value="">Все приоритеты</option>
+            {% for priority in priorities %}
+            <option value="{{ priority }}" {% if priority==current_priority %}selected{% endif %}>
+                {{ priority }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Кнопка сброса фильтров -->
+    <div class="col-md-4">
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary w-100">Сбросить фильтры</a>
+    </div>
+</div>
+
+<!-- Список товаров -->
+<div class="list-group">
+    {% for item in items %}
+    <!-- Элемент списка с условным классом purchased -->
+    <div class="list-group-item {% if item.purchased %}purchased{% endif %}">
+        <div class="d-flex justify-content-between align-items-center">
+            <!-- Левая часть: чекбокс и информация о товаре -->
+            <div class="d-flex align-items-center">
+                <!-- Чекбокс отметки покупки -->
+                <input type="checkbox" class="form-check-input me-3" {% if item.purchased %}checked{% endif %}
+                    onchange="toggleItem('{{ item.id }}')">
+
+                <!-- Информация о товаре -->
+                <div>
+                    <!-- Название товара с зачеркиванием если куплен -->
+                    <h6 class="mb-0 {% if item.purchased %}text-decoration-line-through{% endif %}">
+                        {{ item.name }} <small class="text-muted">({{ item.quantity }})</small>
+                    </h6>
+
+                    <!-- Бейджи категории и приоритета -->
+                    <small class="text-muted">
+                        <span class="badge bg-secondary">{{ item.category }}</span>
+                        <span
+                            class="badge {% if item.priority == 'срочно купить' %}bg-danger{% else %}bg-warning{% endif %}">
+                            {{ item.priority }}
+                        </span>
+                    </small>
+                </div>
+            </div>
+
+            <!-- Правая часть: кнопки действий -->
+            <div>
+                <!-- Кнопка редактирования -->
+                <a href="{{ url_for('edit_item', item_id=item.id) }}" class="btn btn-sm btn-outline-primary me-1">✏️</a>
+
+                <!-- Кнопка удаления с подтверждением -->
+                <a href="{{ url_for('delete_item', item_id=item.id) }}" class="btn btn-sm btn-outline-danger"
+                    onclick="return confirm('Удалить этот товар?')">🗑️</a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Сообщение при пустом списке -->
+    <div class="text-center text-muted mt-5">
+        <p>Список покупок пуст</p>
+        <a href="{{ url_for('add_item') }}" class="btn btn-primary">Добавить первый товар</a>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- JavaScript функции для взаимодействия -->
+<script>
+    // Переключение статуса покупки товара
+    function toggleItem(itemId) {
+        window.location.href = '/toggle/' + itemId;
+    }
+
+    // Переключение отображения купленных товаров
+    function togglePurchased() {
+        const show = document.getElementById('showPurchased').checked;
+        const url = new URL(window.location.href);
+        url.searchParams.set('show_purchased', show);
+        window.location.href = url.toString();
+    }
+
+    // Фильтрация по категории
+    function filterByCategory(category) {
+        const url = new URL(window.location.href);
+        if (category) {
+            url.searchParams.set('category', category);
+        } else {
+            url.searchParams.delete('category');
+        }
+        window.location.href = url.toString();
+    }
+
+    // Фильтрация по приоритету
+    function filterByPriority(priority) {
+        const url = new URL(window.location.href);
+        if (priority) {
+            url.searchParams.set('priority', priority);
+        } else {
+            url.searchParams.delete('priority');
+        }
+        window.location.href = url.toString();
+    }
+</script>
+{% endblock %}
