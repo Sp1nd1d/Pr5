@@ -1,0 +1,43 @@
+---
+- name: Deploy flask app from tar
+  hosts: app
+  become: yes
+  vars:
+    tar_name: "flask-app.tar"
+    remote_tar: "/tmp/{{ tar_name }}"
+    image_tag: "flask-app:latest"
+    container_name: "flask-app"
+    app_port: "5000"
+
+  tasks:
+    - name: Ensure docker is installed
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Copy image tar to remote host
+      copy:
+        src: "{{ tar_name }}"
+        dest: "{{ remote_tar }}"
+        mode: '0644'
+
+    - name: Load docker image from tar
+      command: docker load -i "{{ remote_tar }}"
+      register: docker_load
+      changed_when: "'Loaded image' in docker_load.stdout or docker_load.rc == 0"
+
+    - name: Stop and remove existing container (if any)
+      shell: |
+        docker rm -f {{ container_name }} || true
+
+    - name: Run container
+      shell: |
+        docker run -d --name {{ container_name }} --restart always -p {{ app_port }}:{{ app_port }} {{ image_tag }}
+      args:
+        warn: false
+
+    - name: Clean up remote tar
+      file:
+        path: "{{ remote_tar }}"
+        state: absent
