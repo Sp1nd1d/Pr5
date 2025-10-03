@@ -34,14 +34,10 @@
       changed_when: "'Loaded image' in docker_load.stdout or docker_load.rc == 0"
 
     - name: Stop and remove existing container (if any)
-      shell: |
-        docker rm -f {{ container_name }} || true
+      shell: docker rm -f {{ container_name }} || true
 
     - name: Run container
-      shell: |
-        docker run -d --name {{ container_name }} --restart always -p {{ app_port }}:{{ app_port }} {{ image_tag }}
-      args:
-        warn: false
+      shell: docker run -d --name {{ container_name }} --restart always -p {{ app_port }}:{{ app_port }} {{ image_tag }}
 
     - name: Clean up remote tar
       file:
