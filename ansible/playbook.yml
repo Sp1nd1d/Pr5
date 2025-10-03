@@ -10,21 +10,15 @@
     app_port: "5000"
 
   tasks:
-    - name: Check if Docker is installed
-      command: docker --version
-      register: docker_check
-      ignore_errors: yes
-
     - name: Ensure docker is installed
       apt:
         name: docker.io
-        state: presentы
+        state: present
         update_cache: yes
-      when: docker_check.rc != 0
 
     - name: Copy image tar to remote host
       copy:
-        src: "{{ tar_name }}"
+        src: "../{{ tar_name }}"
         dest: "{{ remote_tar }}"
         mode: '0644'
 
